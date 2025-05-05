@@ -9,7 +9,7 @@ services:
       - key: APP_DEBUG
         value: true
       - key: APP_KEY
-        value: rO8k2KG5VpoxcdXaBSrepPM8l8ISOgLQQXsUAxhPZGA= 
+        value: base64:wuMWVTcTcsd9WtcpqkQGQ3g2GRWT5pkJKmg7IDlLcRw=
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
