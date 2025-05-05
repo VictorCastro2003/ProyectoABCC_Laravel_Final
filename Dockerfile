@@ -19,6 +19,11 @@ WORKDIR /var/www
 
 # Copia todo el código antes de instalar dependencias
 COPY . .
+RUN cp .env.example .env && \
+    php artisan key:generate && \
+    echo "CACHE_DRIVER=array" >> .env && \
+    echo "SESSION_DRIVER=file" >> .env && \
+    echo "QUEUE_CONNECTION=sync" >> .env
 
 # Configura valores por defecto para .env si aún no existe
 RUN cp .env.example .env || true \
