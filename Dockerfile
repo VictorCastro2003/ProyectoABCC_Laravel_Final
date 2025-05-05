@@ -53,6 +53,6 @@ COPY --from=node_builder /app/public/build ./public/build
 # Asigna permisos
 RUN chown -R www-data:www-data . \
     && chmod -R 755 .
-
+RUN php artisan config:clear && php artisan cache:clear && php artisan config:cache
 # Corre migraciones automáticamente al iniciar
 CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080
