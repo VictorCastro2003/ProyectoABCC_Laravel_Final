@@ -6,9 +6,13 @@ WORKDIR /app
 # Copiamos dependencias y archivo de configuración
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader
+# Copia primero composer para aprovechar el cache
 
-# Copiamos el resto del código
 COPY . .
+
+# Ahora sí puedes ejecutar composer install sin errores
+RUN composer install --no-dev --optimize-autoloader
+
 
 # Etapa 2: Producción con Apache + PHP
 FROM php:8.2-apache
