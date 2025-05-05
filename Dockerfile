@@ -17,23 +17,21 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Establece directorio de trabajo
 WORKDIR /var/www
 
-# Copia todo el código antes de instalar dependencias
+# Copia todo el código
 COPY . .
+
+# Copia y configura .env
 RUN cp .env.example .env && \
-    php artisan key:generate && \
     echo "CACHE_DRIVER=array" >> .env && \
     echo "SESSION_DRIVER=file" >> .env && \
     echo "QUEUE_CONNECTION=sync" >> .env
 
-# Configura valores por defecto para .env si aún no existe
-RUN cp .env.example .env || true \
-    && echo "CACHE_DRIVER=array" >> .env \
-    && echo "SESSION_DRIVER=file" >> .env \
-    && echo "QUEUE_CONNECTION=sync" >> .env
-
 # Instala dependencias PHP y Node.js
 RUN composer install --optimize-autoloader --no-dev \
     && npm install && npm run build
+
+# Genera clave de aplicación (ahora que vendor/autoload.php existe)
+RUN php artisan key:generate
 
 # Optimizaciones de Laravel
 RUN php artisan config:cache \
@@ -42,5 +40,4 @@ RUN php artisan config:cache \
 
 EXPOSE 8000
 
-# Comando por defecto
 CMD php artisan serve --host=0.0.0.0 --port=8000
