@@ -3,14 +3,10 @@ FROM composer:2.7 AS build
 
 WORKDIR /app
 
-# Copiamos dependencias y archivo de configuración
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader
-# Copia primero composer para aprovechar el cache
-
+# Copiamos todo el código fuente primero
 COPY . .
 
-# Ahora sí puedes ejecutar composer install sin errores
+# Ejecutamos composer install (ya está artisan y todo)
 RUN composer install --no-dev --optimize-autoloader
 
 
