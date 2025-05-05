@@ -3,40 +3,44 @@ FROM composer:2.7 AS build
 
 WORKDIR /app
 
-# Copiamos todo el código fuente primero
 COPY . .
 
-# Ejecutamos composer install (ya está artisan y todo)
+# Instalar dependencias sin las de desarrollo
 RUN composer install --no-dev --optimize-autoloader
 
 
-# Etapa 2: Producción con Apache + PHP
+# Etapa 2: Producción
 FROM php:8.2-apache
 
-# Instalamos extensiones necesarias de Laravel
+# Instalar extensiones necesarias
 RUN apt-get update && apt-get install -y \
     libzip-dev unzip libpng-dev libonig-dev libxml2-dev zip git curl \
     && docker-php-ext-install pdo pdo_mysql zip
 
-# Habilitamos mod_rewrite de Apache
+# Habilitar mod_rewrite de Apache
 RUN a2enmod rewrite
 
+# Establecer directorio de trabajo
 WORKDIR /var/www/html
 
-# Copiamos código desde el stage anterior
+# Copiar el código desde la etapa de construcción
 COPY --from=build /app ./
 
-# Copiamos .env.example como .env (para entorno de producción en contenedor)
-COPY .env.example .env
+# ⚠️ COPIAR EL .env REAL DESDE LA MÁQUINA LOCAL O USAR VARIABLES DE ENTORNO EN RENDER
+# NO copiar .env.example
+# COPY .env.example .env ❌
 
-# Generamos APP_KEY y cacheamos configuración
-RUN php artisan key:generate --ansi && php artisan config:cache
+# Generar APP_KEY si no existe
+RUN php artisan config:clear \
+ && php artisan cache:clear \
+ && php artisan config:cache \
+ && php artisan route:cache
 
-# Permisos necesarios
+# Asignar permisos correctos
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
+ && chmod -R 775 storage bootstrap/cache
 
-# Cambiamos DocumentRoot a /public
+# Cambiar DocumentRoot a /public
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
 EXPOSE 80
