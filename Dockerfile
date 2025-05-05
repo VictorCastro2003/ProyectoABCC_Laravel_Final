@@ -1,13 +1,24 @@
-# Etapa 1: Build de assets con Node.js (Vite)
+# Etapa 1: Build de assets con Node.js
 FROM node:20-alpine AS node_builder
 
 WORKDIR /app
 
-# Copiar archivos necesarios para npm
+# 1. Copiar archivos de configuración primero
 COPY package*.json ./
 COPY vite.config.js ./
 COPY tailwind.config.js ./
 COPY postcss.config.js ./
+
+# 2. Instalar dependencias
+RUN npm install --force
+
+# 3. Copiar recursos CSS/JS después de instalar dependencias
+COPY resources/css ./resources/css
+COPY resources/js ./resources/js
+
+# 4. Construir assets
+RUN npm run build -- --mode=production
+
 
 # Instalar dependencias y construir assets
 RUN npm install --force && npm run build -- --mode=production
