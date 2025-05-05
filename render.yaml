@@ -1,19 +1,15 @@
 services:
   - type: web
-    name: laravel-abcc
+    name: ProyectoABCC_LARAVEL
     env: docker
-    plan: free
-    branch: main
-    dockerfilePath: Dockerfile
+    dockerfilePath: ./Dockerfile  # Render detectará y usará automáticamente este Dockerfile
     envVars:
       - key: APP_ENV
         value: production
-      - key: APP_KEY
-        value: base64:...
       - key: APP_DEBUG
-        value: false
-      - key: APP_URL
-        value: https://proyectoabcc-laravel-final.onrender.com
+        value: true
+      - key: APP_KEY
+        value: base64:wuMWVTcTcsd9WtcpqkQGQ3g2GRWT5pkJKmg7IDlLcRw=
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
@@ -26,9 +22,4 @@ services:
         value: uver4zyp7czemcjo
       - key: DB_PASSWORD
         value: 3RVgPRApcLX9SlcwepRe
-      - key: SESSION_DRIVER
-        value: file
-      - key: CACHE_STORE
-        value: file
-      - key: QUEUE_CONNECTION
-        value: sync
+
