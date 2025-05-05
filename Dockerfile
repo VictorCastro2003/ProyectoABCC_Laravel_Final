@@ -1,59 +1,43 @@
-# Etapa 1: Construcción de assets con Node.js
-FROM node:18 AS node-build
+# Etapa 1: Construcción
+FROM composer:2.7 AS build
 
 WORKDIR /app
 
-# Copia solo los archivos necesarios para instalar dependencias de frontend
-COPY package*.json vite.config.js ./
-COPY resources ./resources
-COPY tailwind.config.js postcss.config.js ./
-
-RUN npm install && npm run build
-
-# Etapa 2: Configuración de PHP con Apache
-FROM php:8.2-apache
-
-
-# Instala dependencias del sistema
-RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    curl \
-    libzip-dev \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    libcurl4-openssl-dev \
-    zip \
-    && docker-php-ext-install pdo pdo_mysql zip mbstring exif pcntl
-
-# Habilita mod_rewrite en Apache
-RUN a2enmod rewrite
-
-# Instala Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# Establece directorio de trabajo
-WORKDIR /var/www/html
-
-# Copia el resto del proyecto Laravel
-COPY . .
-
-# Copia los assets generados desde la etapa de Node.js
-COPY --from=node-build /app/public/build public/build
-
-# Instala dependencias PHP (sin las de desarrollo)
+# Copiamos dependencias y archivo de configuración
+COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader
 
-# Permisos correctos para Laravel
+# Copiamos el resto del código
+COPY . .
+
+# Etapa 2: Producción con Apache + PHP
+FROM php:8.2-apache
+
+# Instalamos extensiones necesarias de Laravel
+RUN apt-get update && apt-get install -y \
+    libzip-dev unzip libpng-dev libonig-dev libxml2-dev zip git curl \
+    && docker-php-ext-install pdo pdo_mysql zip
+
+# Habilitamos mod_rewrite de Apache
+RUN a2enmod rewrite
+
+WORKDIR /var/www/html
+
+# Copiamos código desde el stage anterior
+COPY --from=build /app ./
+
+# Copiamos .env.example como .env (para entorno de producción en contenedor)
+COPY .env.example .env
+
+# Generamos APP_KEY y cacheamos configuración
+RUN php artisan key:generate --ansi && php artisan config:cache
+
+# Permisos necesarios
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Configura Apache para servir desde /public
+# Cambiamos DocumentRoot a /public
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
-# Expone el puerto 80
 EXPOSE 80
-
-# Comando por defecto
 CMD ["apache2-foreground"]
