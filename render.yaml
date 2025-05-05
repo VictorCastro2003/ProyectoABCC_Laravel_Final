@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: ProyectoABCC_LARAVEL
+    env: docker
+    dockerfilePath: ./Dockerfile  # Render detectará y usará automáticamente este Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: true
+      - key: APP_KEY
+        value: rO8k2KG5VpoxcdXaBSrepPM8l8ISOgLQQXsUAxhPZGA= 
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        value: btldotgudhylexb18sey-mysql.services.clever-cloud.com
+      - key: DB_PORT
+        value: 3306
+      - key: DB_DATABASE
+        value: btldotgudhylexb18sey
+      - key: DB_USERNAME
+        value: uver4zyp7czemcjo
+      - key: DB_PASSWORD
+        value: 3RVgPRApcLX9SlcwepRe
