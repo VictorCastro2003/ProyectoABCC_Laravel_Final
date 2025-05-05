@@ -1,43 +1,57 @@
-FROM php:8.2-fpm
+# Etapa 1: Build de assets con Node.js
+FROM node:20-alpine AS node_builder
 
-# Instala dependencias del sistema
-RUN apt-get update && apt-get install -y \
-    libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
-    libzip-dev zip git curl gnupg ca-certificates \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo pdo_mysql zip
+WORKDIR /app
 
-# Instala Node.js 18.x
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs
+COPY package*.json ./
+RUN npm install
+
+COPY resources/ resources/
+COPY vite.config.js ./
+COPY tailwind.config.js ./
+COPY postcss.config.js ./
+
+# Solo los assets necesarios
+RUN npm run build
+
+
+# Etapa 2: App PHP con Composer
+FROM php:8.2-fpm-alpine
+
+# Instala extensiones y herramientas necesarias
+RUN apk add --no-cache \
+    bash \
+    zip \
+    unzip \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    oniguruma-dev \
+    mysql-client \
+    icu-dev \
+    libxml2-dev \
+    git \
+    curl \
+    && docker-php-ext-install pdo pdo_mysql mbstring tokenizer xml intl gd
 
 # Instala Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Establece directorio de trabajo
+# Directorio de trabajo
 WORKDIR /var/www
 
-# Copia todo el código
+# Copia app Laravel
 COPY . .
 
-# Copia y configura .env
-RUN cp .env.example .env && \
-    echo "CACHE_DRIVER=array" >> .env && \
-    echo "SESSION_DRIVER=file" >> .env && \
-    echo "QUEUE_CONNECTION=sync" >> .env
+# Instala dependencias PHP
+RUN composer install --no-dev --optimize-autoloader
 
-# Instala dependencias PHP y Node.js
-RUN composer install --optimize-autoloader --no-dev \
-    && npm install && npm run build
+# Copia assets generados desde la etapa Node
+COPY --from=node_builder /app/public/build ./public/build
 
-# Genera clave de aplicación (ahora que vendor/autoload.php existe)
-RUN php artisan key:generate
+# Asigna permisos
+RUN chown -R www-data:www-data . \
+    && chmod -R 755 .
 
-# Optimizaciones de Laravel
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
-
-EXPOSE 8000
-
-CMD php artisan serve --host=0.0.0.0 --port=8000
+# Corre migraciones automáticamente al iniciar
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080
