@@ -1,47 +1,55 @@
-# Etapa 1: Construcción
-FROM composer:2.7 AS build
+FROM php:8.2-fpm
 
-WORKDIR /app
+# Instala dependencias para Laravel y Node.js
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    zip \
+    git \
+    curl \
+    gnupg \
+    ca-certificates \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd pdo pdo_mysql zip
 
+# Instala Node.js 18.x (estable)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
+
+# Instala Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Establece el directorio de trabajo
+WORKDIR /var/www
+
+# Copia primero solo los archivos necesarios para composer
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader
+
+# Copia el resto del código
 COPY . .
 
-# Instalar dependencias sin las de desarrollo
-RUN composer install --no-dev --optimize-autoloader
+# Configura cache a usar array en lugar de database
+RUN echo "CACHE_DRIVER=array" >> .env \
+    && echo "SESSION_DRIVER=file" >> .env \
+    && echo "QUEUE_CONNECTION=sync" >> .env
 
+# Instala dependencias de PHP
+RUN composer install --optimize-autoloader --no-dev
 
-# Etapa 2: Producción
-FROM php:8.2-apache
+# Instala dependencias de Node.js
+RUN npm install && npm run build
 
-# Instalar extensiones necesarias
-RUN apt-get update && apt-get install -y \
-    libzip-dev unzip libpng-dev libonig-dev libxml2-dev zip git curl \
-    && docker-php-ext-install pdo pdo_mysql zip
+# Expone el puerto 8000
+EXPOSE 8000
 
-# Habilitar mod_rewrite de Apache
-RUN a2enmod rewrite
+# Configuración final - Solo optimización
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
+    
 
-# Establecer directorio de trabajo
-WORKDIR /var/www/html
-
-# Copiar el código desde la etapa de construcción
-COPY --from=build /app ./
-
-# ⚠️ COPIAR EL .env REAL DESDE LA MÁQUINA LOCAL O USAR VARIABLES DE ENTORNO EN RENDER
-# NO copiar .env.example
-# COPY .env.example .env ❌
-
-# Generar APP_KEY si no existe
-RUN php artisan config:clear \
- && php artisan cache:clear \
- && php artisan config:cache \
- && php artisan route:cache
-
-# Asignar permisos correctos
-RUN chown -R www-data:www-data /var/www/html \
- && chmod -R 775 storage bootstrap/cache
-
-# Cambiar DocumentRoot a /public
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
-
-EXPOSE 80
-CMD ["apache2-foreground"]
+# Comando de inicio
+CMD php artisan serve --host=0.0.0.0 --port=8000
