@@ -1,24 +1,21 @@
-# Etapa 1: Build de assets con Node.js
+# Etapa 1: Build de assets con Node.js (Vite)
 FROM node:20-alpine AS node_builder
 
 WORKDIR /app
 
+# Copiar archivos necesarios para npm
 COPY package*.json ./
-RUN npm install
-
-COPY resources/ resources/
 COPY vite.config.js ./
 COPY tailwind.config.js ./
 COPY postcss.config.js ./
 
-# Solo los assets necesarios
-RUN npm run build
+# Instalar dependencias y construir assets
+RUN npm install --force && npm run build -- --mode=production
 
-
-# Etapa 2: App PHP con Composer
+# Etapa 2: Entorno PHP
 FROM php:8.2-fpm-alpine
 
-# Instala extensiones y herramientas necesarias
+# Instalar dependencias del sistema
 RUN apk add --no-cache \
     bash \
     zip \
@@ -31,28 +28,34 @@ RUN apk add --no-cache \
     icu-dev \
     libxml2-dev \
     git \
-    curl \
-    && docker-php-ext-install pdo pdo_mysql mbstring xml intl gd
+    curl
 
+# Instalar extensiones PHP
+RUN docker-php-ext-install pdo pdo_mysql mbstring xml intl gd \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg
 
-# Instala Composer
+# Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Directorio de trabajo
 WORKDIR /var/www
 
-# Copia app Laravel
+# Copiar aplicación Laravel
 COPY . .
 
-# Instala dependencias PHP
-RUN composer install --no-dev --optimize-autoloader
-
-# Copia assets generados desde la etapa Node
+# Copiar assets compilados desde la etapa de Node
 COPY --from=node_builder /app/public/build ./public/build
 
-# Asigna permisos
-RUN chown -R www-data:www-data . \
-    && chmod -R 755 .
+# Instalar dependencias de Composer
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Corre migraciones automáticamente al iniciar
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080
+# Ajustar permisos
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 755 /var/www/storage \
+    && chmod -R 755 /var/www/bootstrap/cache
+
+# Puerto expuesto
+EXPOSE 8080
+
+# Comando de inicio
+CMD php artisan serve --host=0.0.0.0 --port=8080
