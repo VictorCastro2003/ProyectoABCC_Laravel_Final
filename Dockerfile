@@ -11,7 +11,8 @@ COPY tailwind.config.js postcss.config.js ./
 RUN npm install && npm run build
 
 # Etapa 2: Configuración de PHP con Apache
-FROM php:8.1-apache
+FROM php:8.2-apache
+
 
 # Instala dependencias del sistema
 RUN apt-get update && apt-get install -y \
