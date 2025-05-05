@@ -32,7 +32,8 @@ RUN apk add --no-cache \
     libxml2-dev \
     git \
     curl \
-    && docker-php-ext-install pdo pdo_mysql mbstring tokenizer xml intl gd
+    && docker-php-ext-install pdo pdo_mysql mbstring xml intl gd
+
 
 # Instala Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
