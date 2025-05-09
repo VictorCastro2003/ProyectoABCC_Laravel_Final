@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
+    <script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
+
 <head>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión</title>
@@ -148,18 +151,26 @@
         }
     </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script>
+    grecaptcha.ready(function () {
+        grecaptcha.execute('{{ config('services.recaptcha.site_key') }}', {action: 'submit'}).then(function (token) {
+            let input = document.createElement('input');
+            input.setAttribute('type', 'hidden');
+            input.setAttribute('name', 'g-recaptcha-response');
+            input.setAttribute('value', token);
+            document.forms[0].appendChild(input);
+        });
+    });
+</script>
 </head>
 <body>
     <div class="auth-container">
         <!-- Session Status -->
-        <div class="session-status session-status-success">
-            <?php
-            $status = session('status');
-            if ($status) {
-                echo htmlspecialchars($status);
-            }
-            ?>
-        </div>
+       @if (session('status'))
+    <div class="session-status session-status-success">
+        {{ session('status') }}
+    </div>
+@endif
 
         <h1 class="auth-title">Iniciar Sesión</h1>
         
