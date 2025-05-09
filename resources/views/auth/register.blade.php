@@ -76,6 +76,19 @@
         }
     </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
+<script>
+    grecaptcha.ready(function () {
+        grecaptcha.execute('{{ config('services.recaptcha.site_key') }}', {action: 'submit'}).then(function (token) {
+            let input = document.createElement('input');
+            input.setAttribute('type', 'hidden');
+            input.setAttribute('name', 'g-recaptcha-response');
+            input.setAttribute('value', token);
+            document.forms[0].appendChild(input);
+        });
+    });
+</script>
+
 </head>
 <body>
     <div class="register-container">
