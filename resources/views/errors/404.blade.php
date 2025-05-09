@@ -168,7 +168,7 @@
                 <h2 class="error-title">Página no encontrada</h2>
                 <p class="error-description">
                     Lo sentimos, no pudimos encontrar la página que estás buscando.
-                    Mientras tanto, puedes volver al inicio o intentar buscar lo que necesitas.
+                    Mientras tanto, puedes volver al inicio.
                 </p>
                 
                 <a href="{{ url('/') }}" class="btn btn-home btn-lg rounded-pill">
