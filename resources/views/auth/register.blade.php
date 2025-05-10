@@ -48,6 +48,7 @@
             border: none;
             border-radius: 6px;
             margin-top: 10px;
+            color: white;
         }
         .btn-register:hover {
             background-color: #0b5ed7;
@@ -75,20 +76,8 @@
             margin-bottom: 15px;
         }
     </style>
+    <!-- Incluye Bootstrap CSS si es necesario -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
-<script>
-    grecaptcha.ready(function () {
-        grecaptcha.execute('{{ config('services.recaptcha.site_key') }}', {action: 'submit'}).then(function (token) {
-            let input = document.createElement('input');
-            input.setAttribute('type', 'hidden');
-            input.setAttribute('name', 'g-recaptcha-response');
-            input.setAttribute('value', token);
-            document.forms[0].appendChild(input);
-        });
-    });
-</script>
-
 </head>
 <body>
     <div class="register-container">
@@ -127,6 +116,9 @@
                     class="form-control" required autocomplete="new-password">
             </div>
 
+            <!-- Campo oculto para reCAPTCHA -->
+            <input type="hidden" name="recaptcha_token" id="recaptcha_token">
+
             <button type="submit" class="btn-register">
                 Registrarse
             </button>
@@ -136,5 +128,15 @@
             </a>
         </form>
     </div>
+
+    <!-- Script de reCAPTCHA v3 -->
+    <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY') }}"></script>
+    <script>
+        grecaptcha.ready(function() {
+            grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY') }}', {action: 'register'}).then(function(token) {
+                document.getElementById('recaptcha_token').value = token;
+            });
+        });
+    </script>
 </body>
 </html>
