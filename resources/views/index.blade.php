@@ -97,7 +97,6 @@
                 }
             });
 
-            // SweetAlert2 para confirmación
             const forms = document.querySelectorAll('.form-eliminar');
             forms.forEach(form => {
                 form.addEventListener('submit', function (event) {
@@ -120,4 +119,18 @@
             });
         });
     </script>
+
+    @if (session('success'))
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Éxito',
+            text: '{{ session('success') }}',
+            confirmButtonColor: '#28a745',
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true
+        });
+    </script>
+    @endif
 @stop
