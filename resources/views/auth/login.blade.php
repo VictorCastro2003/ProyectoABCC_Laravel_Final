@@ -1,26 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
-    <script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
-
 <head>
-    <script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
-<script>
-    grecaptcha.ready(function () {
-        grecaptcha.execute('{{ config('services.recaptcha.site_key') }}', {action: 'submit'}).then(function (token) {
-            let input = document.createElement('input');
-            input.setAttribute('type', 'hidden');
-            input.setAttribute('name', 'g-recaptcha-response');
-            input.setAttribute('value', token);
-            document.forms[0].appendChild(input);
-        });
-    });
-</script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión</title>
     <style>
-        :root {
+         :root {
             --primary-color: #6366f1;
             --primary-hover: #4f46e5;
             --text-color: #374151;
@@ -163,26 +148,18 @@
         }
     </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script>
-    grecaptcha.ready(function () {
-        grecaptcha.execute('{{ config('services.recaptcha.site_key') }}', {action: 'submit'}).then(function (token) {
-            let input = document.createElement('input');
-            input.setAttribute('type', 'hidden');
-            input.setAttribute('name', 'g-recaptcha-response');
-            input.setAttribute('value', token);
-            document.forms[0].appendChild(input);
-        });
-    });
-</script>
 </head>
 <body>
     <div class="auth-container">
         <!-- Session Status -->
-       @if (session('status'))
-    <div class="session-status session-status-success">
-        {{ session('status') }}
-    </div>
-@endif
+        <div class="session-status session-status-success">
+            <?php
+            $status = session('status');
+            if ($status) {
+                echo htmlspecialchars($status);
+            }
+            ?>
+        </div>
 
         <h1 class="auth-title">Iniciar Sesión</h1>
         
@@ -217,6 +194,9 @@
                 <label for="remember_me">Recordar sesión</label>
             </div>
 
+            <!-- Campo oculto para reCAPTCHA -->
+            <input type="hidden" name="recaptcha_token" id="recaptcha_token">
+
             <div class="auth-footer">
                 @if (Route::has('password.request'))
                     <a class="forgot-password" href="{{ route('password.request') }}">
@@ -230,5 +210,15 @@
             </div>
         </form>
     </div>
+
+    <!-- reCAPTCHA v3 -->
+    <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY') }}"></script>
+    <script>
+        grecaptcha.ready(function() {
+            grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY') }}', {action: 'login'}).then(function(token) {
+                document.getElementById('recaptcha_token').value = token;
+            });
+        });
+    </script>
 </body>
 </html>
