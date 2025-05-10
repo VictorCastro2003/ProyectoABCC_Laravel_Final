@@ -13,19 +13,27 @@ class AlumnoController extends Controller
     {
         return view('insertar');
     }
-    public function store(Request $request)
+       public function store(Request $request)
     {
         $request->validate([
-            'Num_Control' => 'required|unique:alumnos,Num_Control',
-            'Nombre' => 'required',
-            'Primer_Ap' => 'required',
-            // puedes validar más campos si quieres
+            'Num_Control' => [
+                'required',
+                'unique:alumnos,Num_Control',
+                'regex:/^\d{8}$/', // exactamente 8 dígitos numéricos
+            ],
+            'Nombre' => 'required|string|max:255',
+            'Primer_Ap' => 'required|string|max:255',
+            'Segundo_Ap' => 'nullable|string|max:255',
+            'Fecha_Nac' => 'required|date|before:today',
+            'Semestre' => 'required|integer|between:1,14',
+            'Carrera' => 'required|string|max:255',
         ]);
     
         Alumno::create($request->all());
     
         return redirect()->route('alumnos.index')->with('exito', 'Agregado Correctamente!');
     }
+    
     
 
     // -------- BAJAS --------
@@ -41,23 +49,30 @@ class AlumnoController extends Controller
         return view('editar', compact('alumno'));
     }
 
-    public function update(Request $request, $id)
+     public function update(Request $request, $id)
     {
-        $alumno = Alumno::find($id);
-
-        $alumno->Num_Control = $request->input('Num_Control');
-        $alumno->Nombre = $request->input('Nombre');
-        $alumno->Primer_Ap = $request->input('Primer_Ap');
-        $alumno->Segundo_Ap = $request->input('Segundo_Ap');
-        $alumno->Fecha_Nac = $request->input('Fecha_Nac');
-        $alumno->Semestre = $request->input('Semestre');
-        $alumno->Carrera = $request->input('Carrera');
-
-        $alumno->save();
-        Session::flash('message', 'MODIFICADO Correctamente !'); // Aquí estaba el error
+        $request->validate([
+            'Num_Control' => [
+                'required',
+                'regex:/^\d{8}$/',
+                Rule::unique('alumnos', 'Num_Control')->ignore($id),
+            ],
+            'Nombre' => 'required|string|max:255',
+            'Primer_Ap' => 'required|string|max:255',
+            'Segundo_Ap' => 'nullable|string|max:255',
+            'Fecha_Nac' => 'required|date|before:today',
+            'Semestre' => 'required|integer|between:1,14',
+            'Carrera' => 'required|string|max:255',
+        ]);
+    
+        $alumno = Alumno::findOrFail($id);
+    
+        $alumno->update($request->all());
+    
+        Session::flash('message', 'MODIFICADO Correctamente !');
         return redirect()->route('alumnos.index');
     }
-
+    
     // -------- CONSULTAS --------
     public function index()
     {
