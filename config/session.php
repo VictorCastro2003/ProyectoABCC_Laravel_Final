@@ -170,7 +170,7 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE', false),  # false si no usas HTTPS
+    'secure' => env('SESSION_SECURE_COOKIE', true),  # false si no usas HTTPS
 
     /*
     |--------------------------------------------------------------------------
