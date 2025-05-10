@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Http;
+
 use App\Providers\RouteServiceProvider;
 
 
@@ -30,20 +32,37 @@ class RegisteredUserController extends Controller
      * @throws \Illuminate\Validation\ValidationException
      */
     public function store(Request $request): RedirectResponse
-{
-    $request->validate([
-        'name' => ['required', 'string', 'max:255', 'unique:users'],
-        'password' => ['required', 'confirmed', Rules\Password::defaults()],
-    ]);
-
-    $user = User::create([
-        'name' => $request->name,
-        'password' => Hash::make($request->password),
-    ]);
-
-    Auth::login($user);
-
-    return redirect(RouteServiceProvider::HOME);
-}
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:users'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'recaptcha_token' => ['required', 'string'],
+        ]);
+    
+        // Validar reCAPTCHA con la API de Google
+        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret' => env('RECAPTCHA_SECRET_KEY'),
+            'response' => $request->recaptcha_token,
+            'remoteip' => $request->ip(),
+        ]);
+    
+        $recaptchaData = $response->json();
+    
+        if (!($recaptchaData['success'] ?? false) || ($recaptchaData['score'] ?? 0) < 0.5) {
+            return back()->withErrors([
+                'name' => 'Falló la verificación de seguridad (reCAPTCHA). Intenta nuevamente.',
+            ])->withInput();
+        }
+    
+        $user = User::create([
+            'name' => $request->name,
+            'password' => Hash::make($request->password),
+        ]);
+    
+        Auth::login($user);
+    
+        return redirect(RouteServiceProvider::HOME);
+    }
+    
 
 }
