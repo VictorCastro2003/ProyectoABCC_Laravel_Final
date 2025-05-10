@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 use App\Providers\RouteServiceProvider;
 
@@ -25,23 +26,39 @@ class AuthenticatedSessionController extends Controller
      * Handle an incoming authentication request.
      */
     public function store(Request $request): RedirectResponse
-{
-    $request->validate([
-        'name' => ['required', 'string'],
-        'password' => ['required', 'string'],
-    ]);
-
-    if (! Auth::attempt($request->only('name', 'password'), $request->boolean('remember'))) {
-        throw ValidationException::withMessages([
-            'name' => __('auth.failed'),
+    {
+        $request->validate([
+            'name' => ['required', 'string'],
+            'password' => ['required', 'string'],
+            'recaptcha_token' => ['required', 'string'],
         ]);
+    
+        // Validar reCAPTCHA con la API de Google
+        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret' => env('RECAPTCHA_SECRET_KEY'),
+            'response' => $request->recaptcha_token,
+            'remoteip' => $request->ip(),
+        ]);
+    
+        $recaptchaData = $response->json();
+    
+        if (!($recaptchaData['success'] ?? false) || ($recaptchaData['score'] ?? 0) < 0.5) {
+            throw ValidationException::withMessages([
+                'name' => 'Falló la verificación de seguridad (reCAPTCHA). Inténtalo de nuevo.',
+            ]);
+        }
+    
+        if (! Auth::attempt($request->only('name', 'password'), $request->boolean('remember'))) {
+            throw ValidationException::withMessages([
+                'name' => __('auth.failed'),
+            ]);
+        }
+    
+        $request->session()->regenerate();
+    
+        return redirect()->intended(RouteServiceProvider::HOME);
     }
-
-    $request->session()->regenerate();
-
-    return redirect()->intended(RouteServiceProvider::HOME);
-
-}
+    
 
     /**
      * Destroy an authenticated session.
