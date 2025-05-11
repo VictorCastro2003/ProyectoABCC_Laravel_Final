@@ -220,5 +220,22 @@
             });
         });
     </script>
+    <script>
+    // Refrescar el token CSRF cada 4 minutos (antes de que expire)
+    setInterval(() => {
+        fetch('/sanctum/csrf-cookie', {
+            method: 'GET',
+            credentials: 'include'
+        })
+        .then(response => {
+            console.log('Token CSRF actualizado');
+            // También refresca el token de reCAPTCHA por si acaso
+            grecaptcha.ready(() => {
+                grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY') }}', {action: 'login'})
+                    .then(token => document.getElementById('recaptcha_token').value = token);
+            });
+        });
+    }, 4 * 60 * 1000); // 4 minutos
+</script>
 </body>
 </html>
