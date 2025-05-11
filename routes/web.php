@@ -36,7 +36,7 @@ Route::get('/alumnos/{alumno}/edit', [AlumnoController::class, 'edit'])->name('a
 Route::put('/alumnos/{id}', [AlumnoController::class, 'update'])->name('alumnos.update');
 Route::delete('/alumnos/{alumno}', [AlumnoController::class, 'destroy'])->name('alumnos.destroy');
 Route::get('/alumnos/{num_control}', [AlumnoController::class, 'show'])->name('alumnos.show');
-
+Route::post('/alumnos/{id}/restore', [AlumnoController::class, 'restore'])->name('alumnos.restore');
 
 });
 
