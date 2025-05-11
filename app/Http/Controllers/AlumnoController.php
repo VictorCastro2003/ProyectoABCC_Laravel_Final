@@ -40,8 +40,16 @@ class AlumnoController extends Controller
     public function destroy(Alumno $alumno)
     {
         $alumno->delete();
-        return redirect()->route('alumnos.index')->with('exito', 'Eliminado Correctamente!!!!!');
+        session()->flash('alumno_eliminado', $alumno->id);
+        return redirect()->route('alumnos.index')->with('success', 'Alumno eliminado. Puedes deshacer esta acción por 15 segundos.');
     }
+    
+    public function restore($id)
+{
+    $alumno = Alumno::withTrashed()->findOrFail($id);
+    $alumno->restore();
+    return redirect()->route('alumnos.index')->with('success', 'Alumno restaurado correctamente.');
+}
 
     // -------- CAMBIOS --------
     public function edit(Alumno $alumno)
