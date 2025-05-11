@@ -133,4 +133,27 @@
         });
     </script>
     @endif
+    @if(session('alumno_eliminado'))
+<script>
+    let restoreTimeout = setTimeout(() => {
+        document.getElementById('undo-form')?.remove();
+    }, 15000);
+
+    Swal.fire({
+        icon: 'info',
+        title: 'Alumno eliminado',
+        html: `
+            <form id="undo-form" method="POST" action="{{ route('alumnos.restore', session('alumno_eliminado')) }}">
+                @csrf
+                <button type="submit" class="btn btn-success mt-2">
+                    Deshacer eliminación (15s)
+                </button>
+            </form>
+        `,
+        showConfirmButton: false,
+        timer: 15000,
+        timerProgressBar: true
+    });
+</script>
+@endif
 @stop
