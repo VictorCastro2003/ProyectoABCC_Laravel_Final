@@ -79,21 +79,39 @@
         });
     </script>
     <script>
-    // Refrescar el token CSRF cada 4 minutos (antes de que expire)
-    setInterval(() => {
-        fetch('/sanctum/csrf-cookie', {
-            method: 'GET',
-            credentials: 'include'
-        })
-        .then(response => {
-            console.log('Token CSRF actualizado');
-            // También refresca el token de reCAPTCHA por si acaso
+   <script>
+// Refrescar tokens cada 2 minutos (más frecuente para Render)
+function refreshTokens() {
+    fetch('/sanctum/csrf-cookie', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    }).then(() => {
+        console.log('Tokens actualizados');
+        // Actualizar reCAPTCHA
+        if (typeof grecaptcha !== 'undefined') {
             grecaptcha.ready(() => {
                 grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY') }}', {action: 'login'})
-                    .then(token => document.getElementById('recaptcha_token').value = token);
+                    .then(token => {
+                        document.getElementById('recaptcha_token').value = token;
+                    });
             });
-        });
-    }, 4 * 60 * 1000); // 4 minutos
+        }
+    });
+}
+
+// Ejecutar inmediatamente y cada 2 minutos
+refreshTokens();
+setInterval(refreshTokens, 2 * 60 * 1000);
+
+// Forzar recarga si se detecta error CSRF
+window.addEventListener('load', function() {
+    if (typeof document.querySelector('.input-error') !== 'undefined') {
+        refreshTokens();
+    }
+});
 </script>
 </body>
 </html>
