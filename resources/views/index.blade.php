@@ -103,7 +103,6 @@
                     event.preventDefault();
                     Swal.fire({
                         title: '¿Seguro que quieres eliminar este registro?',
-                        text: "Esta acción no se puede deshacer",
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#d33',
