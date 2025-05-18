@@ -38,6 +38,11 @@ Route::delete('/alumnos/{alumno}', [AlumnoController::class, 'destroy'])->name('
 Route::get('/alumnos/{num_control}', [AlumnoController::class, 'show'])->name('alumnos.show');
 Route::post('/alumnos/{id}/restore', [AlumnoController::class, 'restore'])->name('alumnos.restore');
 
+    Route::get('/alumnos/{alumno}/asignar_materias', [AlumnoMateriaController::class, 'form'])->name('alumnos.asignarMaterias.form');
+Route::post('/alumnos/{alumno}/asignar_materias', [AlumnoMateriaController::class, 'asignar'])->name('alumnos.asignarMaterias');
+Route::get('/alumnos/{alumno}/calificaciones', [CalificacionController::class, 'create'])->name('calificaciones.create');
+Route::post('/alumnos/{alumno}/calificaciones', [CalificacionController::class, 'store'])->name('calificaciones.store');
+
 });
 
 require __DIR__.'/auth.php';
