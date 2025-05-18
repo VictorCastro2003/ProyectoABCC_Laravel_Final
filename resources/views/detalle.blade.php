@@ -10,13 +10,14 @@
 @section('content')
 <div class="container mt-4">
 
-    @php
-        $reprobadas = $alumno->materias->filter(function ($materia) {
-            return $materia->pivot->calificacion !== null && $materia->pivot->calificacion < 70;
-        })->count();
+@php
+    $reprobadas = optional($alumno->materias)->filter(function ($materia) {
+        return $materia->pivot->calificacion !== null && $materia->pivot->calificacion < 70;
+    })->count() ?? 0;
 
-        $status = $reprobadas >= 2 ? 'En riesgo' : 'Regular';
-    @endphp
+    $status = $reprobadas >= 2 ? 'En riesgo' : 'Regular';
+@endphp
+
 
     {{-- Información del Alumno --}}
     <x-adminlte-card title="Información del Alumno" theme="info" icon="fas fa-user">
