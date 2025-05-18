@@ -45,6 +45,9 @@ Route::post('/alumnos/{id}/restore', [AlumnoController::class, 'restore'])->name
 Route::post('/alumnos/{alumno}/asignar_materias', [AlumnoMateriaController::class, 'asignar'])->name('alumnos.asignarMaterias');
 Route::get('/alumnos/{alumno}/calificaciones', [CalificacionController::class, 'create'])->name('calificaciones.create');
 Route::post('/alumnos/{alumno}/calificaciones', [CalificacionController::class, 'store'])->name('calificaciones.store');
+    
+Route::get('/alumnos/{alumno}/materias-filtradas', [AlumnoMateriaController::class, 'filtrarMaterias'])->name('alumnos.filtrarMaterias');
+
 
 });
 
