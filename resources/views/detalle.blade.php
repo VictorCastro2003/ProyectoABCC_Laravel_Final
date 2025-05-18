@@ -9,6 +9,7 @@
 
 @section('content')
 <div class="container mt-4">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 @php
     $reprobadas = optional($alumno->materias)->filter(function ($materia) {
@@ -93,4 +94,15 @@
     </x-adminlte-card>
 
 </div>
+            @if(session('success'))
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: '¡Éxito!',
+            text: '{{ session('success') }}',
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'OK'
+        });
+    </script>
+@endif
 @stop
