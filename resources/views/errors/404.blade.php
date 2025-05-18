@@ -171,7 +171,7 @@
                     Mientras tanto, puedes volver al inicio.
                 </p>
                 
-                <a href="{{ url('/') }}" class="btn btn-home btn-lg rounded-pill">
+                <a href="{{ url('/alumnos') }}" class="btn btn-home btn-lg rounded-pill">
                     <i class="fas fa-home me-2"></i> Volver al inicio
                 </a>
                 
