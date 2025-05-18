@@ -21,6 +21,7 @@ public function asignar(Request $request, Alumno $alumno)
 
     $alumno->materias()->syncWithoutDetaching($request->materias);
 
-    return redirect()->route('alumnos.index')->with('success', 'Materias asignadas correctamente.');
+    return redirect()->route('alumnos.show', $alumno->Num_Control)
+    ->with('success', 'Materias asignadas correctamente.');
 }
 }
