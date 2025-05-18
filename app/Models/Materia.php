@@ -13,8 +13,11 @@ class Materia extends Model
 
     public function alumnos()
     {
-        return $this->belongsToMany(Alumno::class);
+        return $this->belongsToMany(Alumno::class, 'alumno_materia', 'materia_id', 'alumno_id')
+            ->withPivot('semestre', 'calificacion')
+            ->withTimestamps();
     }
+    
 
     public function calificaciones()
     {
