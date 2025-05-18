@@ -28,6 +28,7 @@ class CalificacionController extends Controller
             ]);
         }
 
-        return redirect()->route('alumnos.index')->with('success', 'Calificaciones registradas correctamente.');
+        return redirect()->route('alumnos.show', $alumno->Num_Control)
+    ->with('success', 'Calificaciones registradas correctamente.');
     }
 }
