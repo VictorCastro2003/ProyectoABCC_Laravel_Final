@@ -9,6 +9,11 @@
     <form action="{{ route('alumnos.asignarMaterias', $alumno->id) }}" method="POST">
         @csrf
 
+        <div class="mb-3">
+            <label for="semestre">Selecciona el semestre al que asignarás estas materias</label>
+            <input type="number" name="semestre" id="semestre" class="form-control" required min="1" max="12">
+        </div>
+
         @php
             $materiasAsignadas = $alumno->materias->pluck('id')->toArray();
             $materiasDisponibles = $materias->whereNotIn('id', $materiasAsignadas);
@@ -22,7 +27,7 @@
                     <div class="col-md-6 col-lg-4">
                         <label class="card h-100 shadow-sm border border-light p-3 hover-shadow position-relative">
                             <input type="checkbox" name="materias[]" value="{{ $materia->id }}"
-                                   class="form-check-input position-absolute top-0 end-0 m-2" id="materia{{ $materia->id }}">
+                                   class="form-check-input position-absolute top-0 end-0 m-2">
 
                             <div class="d-flex align-items-start gap-2">
                                 <div class="fs-3 text-primary">
@@ -43,6 +48,7 @@
     </form>
 </div>
 @endsection
+
 
 @section('js')
 <script>
