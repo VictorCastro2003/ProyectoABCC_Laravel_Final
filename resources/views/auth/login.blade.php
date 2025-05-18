@@ -9,15 +9,12 @@
 </head>
 <body>
     <div class="auth-container">
-        <!-- Session Status -->
-        <div class="session-status session-status-success">
-            <?php
-            $status = session('status');
-            if ($status) {
-                echo htmlspecialchars($status);
-            }
-            ?>
-        </div>
+       @if (session('status'))
+    <div class="session-status session-status-success">
+        {{ session('status') }}
+    </div>
+@endif
+
 
         <h1 class="auth-title">Iniciar Sesión</h1>
         
