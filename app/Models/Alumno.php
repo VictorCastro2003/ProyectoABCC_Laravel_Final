@@ -19,4 +19,10 @@ class Alumno extends Model{
     ];
     public $timestamps = false;
     protected $dates = ['deleted_at'];
+      public function materias()
+    {
+        return $this->belongsToMany(Materia::class, 'alumno_materia', 'alumno_id', 'materia_id')
+                    ->withPivot('calificacion')
+                    ->withTimestamps();
+    }
 }
