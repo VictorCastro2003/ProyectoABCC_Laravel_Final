@@ -88,9 +88,10 @@ class AlumnoController extends Controller
         return view('index', compact('alumnos'));
     }
 
-    public function show($num_control)
-    {
-        $alumno = Alumno::where('Num_Control', $num_control)->firstOrFail();
-        return view('detalle', compact('alumno'));
-    }
+public function show($num_control)
+{
+    $alumno = Alumno::with('materias')->where('Num_Control', $num_control)->firstOrFail();
+    return view('detalle', compact('alumno'));
+}
+
 }
