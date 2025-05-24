@@ -473,7 +473,16 @@ return [
                     'location' => '//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.bundle.min.js',
                 ],
             ],
-        ],
+        ],           'AlpineJS' => [
+                    'active' => true,
+                    'files' => [
+                        [
+                        'type' => 'js',
+                        'asset' => false,
+                        'location' => 'https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js',
+                        ],
+                    ],
+],
         'Sweetalert2' => [
             'active' => false,
             'files' => [
