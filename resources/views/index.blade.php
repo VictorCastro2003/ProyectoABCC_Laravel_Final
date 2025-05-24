@@ -90,33 +90,36 @@
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
     <script>
-        $(document).ready(function () {
-            $('#tablaAlumnos').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es.json'
+    $(document).ready(function () {
+    $('#tablaAlumnos').DataTable({
+        pageLength: 5, // Muestra solo 5 registros al cargar
+        lengthMenu: [ [5, 10, 25, -1], [5, 10, 25, "Todos"] ],
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es.json'
+        }
+    });
+
+    const forms = document.querySelectorAll('.form-eliminar');
+    forms.forEach(form => {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            Swal.fire({
+                title: '¿Seguro que quieres eliminar este registro?',
+                text: "Esta acción no se puede deshacer",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
                 }
             });
-
-            const forms = document.querySelectorAll('.form-eliminar');
-            forms.forEach(form => {
-                form.addEventListener('submit', function (event) {
-                    event.preventDefault();
-                    Swal.fire({
-                        title: '¿Seguro que quieres eliminar este registro?',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#3085d6',
-                        confirmButtonText: 'Sí, eliminar',
-                        cancelButtonText: 'Cancelar'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.submit();
-                        }
-                    });
-                });
-            });
         });
+    });
+});
     </script>
 
     @if (session('success'))
