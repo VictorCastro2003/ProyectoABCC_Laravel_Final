@@ -82,11 +82,11 @@ class AlumnoController extends Controller
     }
     
     // -------- CONSULTAS --------
-    public function index()
-    {
-        $alumnos = Alumno::latest()->paginate(5);
-        return view('index', compact('alumnos'));
-    }
+      public function index()
+{
+    $alumnos = Alumno::latest()->get(); // ← usa Eloquent, no DB::table()
+    return view('index', compact('alumnos'));
+}
 
 public function show($num_control)
 {
