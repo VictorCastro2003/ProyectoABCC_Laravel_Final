@@ -132,27 +132,45 @@
         });
     </script>
     @endif
+
     @if(session('alumno_eliminado'))
 <script>
     let restoreTimeout = setTimeout(() => {
         document.getElementById('undo-form')?.remove();
     }, 15000);
+</script>
 
+<script>
     Swal.fire({
         icon: 'info',
         title: 'Alumno eliminado',
         html: `
-            <form id="undo-form" method="POST" action="{{ route('alumnos.restore', session('alumno_eliminado')) }}">
+        <div x-data="{ timeLeft: 15, start() {
+            let interval = setInterval(() => {
+                if (this.timeLeft > 0) {
+                    this.timeLeft--;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1000);
+        } }" x-init="start()">
+            <form id="undo-form" method="POST" action='{{ route('alumnos.restore', session('alumno_eliminado')) }}'>
                 @csrf
                 <button type="submit" class="btn btn-success mt-2">
-                    Deshacer eliminación (15s)
+                    Deshacer eliminación (<span x-text="timeLeft"></span>s)
                 </button>
             </form>
+        </div>
         `,
         showConfirmButton: false,
+        didOpen: () => {
+            // Esto hace que Alpine se inicie dentro del SweetAlert
+            Alpine.initTree(document.body);
+        },
         timer: 15000,
         timerProgressBar: true
     });
 </script>
 @endif
+
 @stop
