@@ -7,6 +7,7 @@
   
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body>
   <header>
@@ -61,58 +62,128 @@
             </div>
           @endif
 
-          <form method="POST" action="/alumnos" role="form">
+          <script>
+            function formularioAlumno() {
+                return {
+                    numControl: '{{ old('Num_Control') }}',
+                    nombre: '{{ old('Nombre') }}',
+                    primerAp: '{{ old('Primer_Ap') }}',
+                    segundoAp: '{{ old('Segundo_Ap') }}',
+                    fechaNac: '{{ old('Fecha_Nac') }}',
+                    semestre: '{{ old('Semestre') }}',
+                    carrera: '{{ old('Carrera') }}',
+                    existe: false,
+                    async verificar() {
+                        if (!this.numControl.match(/^[A-Za-z]?\d{8}$/)) {
+                            this.existe = false;
+                            return;
+                        }
+                        const response = await fetch(`/verificar-num-control/${this.numControl}`);
+                        const data = await response.json();
+                        this.existe = data.existe;
+                    },
+                    get todoValido() {
+                        return this.numControl && !this.existe &&
+                               this.nombre && this.primerAp &&
+                               this.fechaNac && this.semestre && this.carrera;
+                    },           limpiarTexto(campo) {
+    if (campo === 'nombre') {
+        // Permitir letras (incluyendo tildes) y espacios
+        this[campo] = this[campo].replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
+    }else if (campo === 'semestre') {
+        // Permitir solo números (sin letras ni caracteres especiales)
+        this[campo] = this[campo].replace(/[^\d]/g, '');
+    } else {
+        // Solo letras, sin espacios ni números
+        this[campo] = this[campo].replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ]/g, '');
+    }
+},
+                    enviarFormulario() {
+                        if (this.todoValido) {
+                            this.$el.submit();
+                        } else {
+                            alert('Por favor, completa todos los campos correctamente.');
+                        }
+                    }
+                }
+            }
+          </script>
+
+          <form method="POST" action="/alumnos" role="form"
+                x-data="formularioAlumno()" x-init="verificar()" @submit.prevent="enviarFormulario">
             @csrf
+
+            <!-- Número de Control -->
             <div class="mb-3">
-              <label for="Num_Control" class="form-label">Número de Control</label>
-              <input type="text" class="form-control" name="Num_Control" id="Num_Control"
-                     value="{{ old('Num_Control') }}" placeholder="Ej. 21070010" required>
+                <label for="Num_Control" class="form-label">Número de Control</label>
+                <input type="text" class="form-control" name="Num_Control" id="Num_Control"
+                       x-model="numControl" @input="verificar()"
+                       placeholder="Ej. A21070010" required>
+                <template x-if="existe">
+                    <small class="text-danger">Este número de control ya está registrado.</small>
+                </template>
+                <template x-if="!existe && numControl.length >= 5">
+                    <small class="text-success">Número de control disponible.</small>
+                </template>
             </div>
+
+            <!-- Nombre -->
             <div class="mb-3">
-              <label for="Nombre" class="form-label">Nombre</label>
-              <input type="text" class="form-control" name="Nombre" id="Nombre"
-                     value="{{ old('Nombre') }}" placeholder="Ej. Juan" required>
+                <label for="Nombre" class="form-label">Nombre</label>
+                <input type="text" class="form-control" name="Nombre"@input="limpiarTexto('nombre')" id="Nombre"
+                       x-model="nombre" placeholder="Ej. Juan" required>
             </div>
+
+            <!-- Apellidos -->
             <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="Primer_Ap" class="form-label">Primer Apellido</label>
-                <input type="text" class="form-control" name="Primer_Ap" id="Primer_Ap"
-                       value="{{ old('Primer_Ap') }}" placeholder="Ej. Pérez" required>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="Segundo_Ap" class="form-label">Segundo Apellido</label>
-                <input type="text" class="form-control" name="Segundo_Ap" id="Segundo_Ap"
-                       value="{{ old('Segundo_Ap') }}" placeholder="Ej. Gómez">
-              </div>
+                <div class="col-md-6 mb-3">
+                    <label for="Primer_Ap" class="form-label">Primer Apellido</label>
+                    <input type="text" class="form-control" name="Primer_Ap"  @input="limpiarTexto('primerAp')"id="Primer_Ap"
+                           x-model="primerAp" placeholder="Ej. Pérez" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="Segundo_Ap" class="form-label">Segundo Apellido</label>
+                    <input type="text" class="form-control" name="Segundo_Ap" @input="limpiarTexto('segundoAp')"id="Segundo_Ap"
+                           x-model="segundoAp" placeholder="Ej. Gómez">
+                </div>
             </div>
+
+            <!-- Fecha de Nacimiento -->
             <div class="mb-3">
-              <label for="Fecha_Nac" class="form-label">Fecha de Nacimiento</label>
-              <input type="date" class="form-control" name="Fecha_Nac" id="Fecha_Nac"
-                     value="{{ old('Fecha_Nac') }}" required>
+                <label for="Fecha_Nac" class="form-label">Fecha de Nacimiento</label>
+                <input type="date" class="form-control" name="Fecha_Nac" id="Fecha_Nac"
+                       x-model="fechaNac" required>
             </div>
+
+            <!-- Semestre y Carrera -->
             <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="Semestre" class="form-label">Semestre</label>
-                <input type="number" class="form-control" name="Semestre" id="Semestre"
-                       min="1" max="12" value="{{ old('Semestre') }}" placeholder="Ej. 3" required>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="Carrera" class="form-label">Carrera</label>
-                <select name="Carrera" id="Carrera" class="form-select" required>
-                  <option disabled {{ old('Carrera') ? '' : 'selected' }}>Selecciona una carrera...</option>
-                  <option {{ old('Carrera') == 'Ingeniería en Sistemas' ? 'selected' : '' }}>Ingeniería en Sistemas</option>
-                  <option {{ old('Carrera') == 'Administración de Empresas' ? 'selected' : '' }}>Administración de Empresas</option>
-                  <option {{ old('Carrera') == 'Contaduría' ? 'selected' : '' }}>Contaduría</option>
-                  <option {{ old('Carrera') == 'Ingeniería Mecatrónica' ? 'selected' : '' }}>Ingeniería Mecatrónica</option>
-                  <option {{ old('Carrera') == 'Otra...' ? 'selected' : '' }}>Otra...</option>
-                </select>
-              </div>
+                <div class="col-md-6 mb-3">
+                    <label for="Semestre" class="form-label">Semestre</label>
+                    <input type="number" class="form-control" name="Semestre" id="Semestre"
+                           x-model="semestre" min="1" max="12"@input="limpiarTexto('semestre')" placeholder="Ej. 3" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="Carrera" class="form-label">Carrera</label>
+                    <select name="Carrera" id="Carrera" class="form-select" x-model="carrera" required>
+                        <option value="" disabled>Selecciona una carrera...</option>
+                        <option>Ingeniería en Sistemas</option>
+                        <option>Administración de Empresas</option>
+                        <option>Contaduría</option>
+                        <option>Ingeniería Mecatrónica</option>
+                        <option>Otra...</option>
+                    </select>
+                </div>
             </div>
+
+        
+
+            <!-- Botones -->
             <div class="text-center">
-              <button type="submit" class="btn btn-success w-50">Guardar</button>
-              <a href="/alumnos" class="btn btn-warning w-50 mt-2">Cancelar</a>
+                <button type="submit" class="btn btn-success w-50" >Guardar</button>
+                <a href="/alumnos" class="btn btn-warning w-50 mt-2">Cancelar</a>
             </div>
           </form>
+
 
           <script>
             document.addEventListener('DOMContentLoaded', function () {
@@ -127,6 +198,9 @@
                 }, 5000);
               }
             });
+
+ 
+
           </script>
         </div>
       </div>
