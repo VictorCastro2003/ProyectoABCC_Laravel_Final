@@ -11,7 +11,14 @@
 
         <div class="mb-3">
             <label for="semestre">Selecciona el semestre al que asignarás estas materias</label>
-            <input type="number" name="semestre" id="semestre" class="form-control" required min="1" max="12">
+            @php
+    $semestresAsignados = $alumno->materias->pluck('pivot.semestre')->filter()->unique()->sort()->values();
+    $proximoSemestre = $semestresAsignados->isNotEmpty() ? $semestresAsignados->last() + 1 : 1;
+@endphp
+
+<input type="number" name="semestre" id="semestre" class="form-control"
+       required min="1" max="12" value="{{ $proximoSemestre }}">
+
         </div>
 
         @php
