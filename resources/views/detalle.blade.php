@@ -45,23 +45,39 @@ $status = $reprobadas >= 2 ? 'En riesgo' : 'Regular';
     </div>
 </x-adminlte-card>
 
-{{-- Filtro por semestre --}}
-<div class="row mb-3">
-    <div class="col-md-4">
-        <label for="semestre_filtrado">Semestre:</label>
-        <select name="semestre_filtrado" id="semestre_filtrado" class="form-control">
-            @foreach($semestres as $sem)
-                <option value="{{ $sem }}" {{ $sem == $ultimoSemestre ? 'selected' : '' }}>{{ $sem }}</option>
-            @endforeach
-        </select>
-    </div>
-</div>
-
 {{-- Materias y Calificaciones --}}
-<x-adminlte-card title="Materias Asignadas y Calificaciones" theme="teal" icon="fas fa-list">
-    <div id="tabla-materias">
-        @include('partials.tabla_materias', ['materiasFiltradas' => $alumno->materias->filter(fn($m) => $m->pivot->semestre == $ultimoSemestre)])
-    </div>
+<x-adminlte-card title="Materias por Semestre" theme="teal" icon="fas fa-layer-group" x-data="{ tab: '{{ $ultimoSemestre }}' }">
+
+    @if($semestres->isEmpty())
+        <div class="alert alert-warning">
+            <i class="fas fa-info-circle"></i> Este alumno aún no tiene materias asignadas.
+        </div>
+    @else
+        {{-- Navegación de pestañas --}}
+        <ul class="nav nav-tabs nav-fill mb-3 border rounded shadow-sm bg-white">
+            @foreach($semestres as $sem)
+                <li class="nav-item">
+                    <a href="#" class="nav-link fw-semibold"
+                       :class="{ 'active bg-info text-white': tab === '{{ $sem }}' }"
+                       @click.prevent="tab = '{{ $sem }}'">
+                        Semestre {{ $sem }}
+                    </a>
+                </li>
+            @endforeach
+        </ul>
+
+        {{-- Contenido por pestaña --}}
+        <div class="tab-content border border-top-0 p-3 bg-light rounded-bottom shadow-sm">
+            @foreach($semestres as $sem)
+                <div x-show="tab === '{{ $sem }}'" x-transition>
+                    @include('partials.tabla_materias', [
+                        'materiasFiltradas' => $alumno->materias->filter(fn($m) => $m->pivot->semestre == $sem)
+                    ])
+                </div>
+            @endforeach
+        </div>
+    @endif
+
 </x-adminlte-card>
 
 {{-- Acciones --}}
