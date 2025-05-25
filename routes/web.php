@@ -49,6 +49,10 @@ Route::post('/alumnos/{alumno}/calificaciones', [CalificacionController::class, 
 Route::get('/alumnos/{alumno}/materias-filtradas', [AlumnoMateriaController::class, 'filtrarMaterias'])->name('alumnos.filtrarMaterias');
 
 
+Route::get('/verificar-num-control/{num}', function ($num) {
+    $existe = Alumno::where('Num_Control', $num)->exists();
+    return response()->json(['existe' => $existe]);
+});
 });
 
 require __DIR__.'/auth.php';
