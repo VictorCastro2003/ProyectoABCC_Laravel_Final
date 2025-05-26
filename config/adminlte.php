@@ -87,7 +87,7 @@ return [
         ['header' => 'Cuenta'],
         [
             'text' => 'Perfil',
-            'url'  => 'perfil',
+            'route' => 'profile',
             'icon' => 'fas fa-user',
         ],
         [
