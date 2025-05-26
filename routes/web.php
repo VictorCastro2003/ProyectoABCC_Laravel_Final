@@ -43,8 +43,13 @@ Route::delete('/alumnos/{alumno}', [AlumnoController::class, 'destroy'])->name('
 Route::get('/alumnos/{num_control}', [AlumnoController::class, 'show'])->name('alumnos.show');
 Route::post('/alumnos/{id}/restore', [AlumnoController::class, 'restore'])->name('alumnos.restore');
 
-    Route::get('/password_change', [PasswordController::class, 'showChangeForm'])->name('password.change');
+Route::get('/password_change', [PasswordController::class, 'showChangeForm'])->name('password.change');
 Route::put('/password_change', [PasswordController::class, 'update'])->name('password.update');
+
+Route::get('/profile', function () {
+return view('profile');
+})->name('profile');
+
     
     Route::get('/alumnos/{alumno}/asignar_materias', [AlumnoMateriaController::class, 'form'])->name('alumnos.asignarMaterias.form');
 Route::post('/alumnos/{alumno}/asignar_materias', [AlumnoMateriaController::class, 'asignar'])->name('alumnos.asignarMaterias');
