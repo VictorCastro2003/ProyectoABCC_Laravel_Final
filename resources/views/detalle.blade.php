@@ -11,17 +11,22 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 @php
-$ultimoSemestre = $alumno->materias->pluck('pivot.semestre')->unique()->sort()->values()->last();
-$reprobadas = $alumno->materias
-    ->filter(fn($m) => $m->pivot->semestre == $ultimoSemestre && $m->pivot->calificacion !== null && $m->pivot->calificacion < 70)
-    ->count();
-$status = $reprobadas >= 2 ? 'En riesgo' : 'Regular';
-    $semestres = $alumno->materias->pluck('pivot.semestre')->unique()->sort()->values();
-    $ultimoSemestre = $semestres->last();
+$semestres = $alumno->materias->pluck('pivot.semestre')->unique()->sort()->values();
+$ultimoSemestre = $semestres->last();
+
+// Mapa de estado por semestre
+$estadoPorSemestre = [];
+foreach ($semestres as $sem) {
+    $reprobadasSem = $alumno->materias
+        ->filter(fn($m) => $m->pivot->semestre == $sem && $m->pivot->calificacion !== null && $m->pivot->calificacion < 70)
+        ->count();
+    $estadoPorSemestre[$sem] = $reprobadasSem >= 2 ? 'En riesgo' : 'Regular';
+}
+$status = $estadoPorSemestre[$ultimoSemestre] ?? 'Regular';
 @endphp
 
 {{-- Información del Alumno --}}
-<x-adminlte-card title="Información del Alumno" theme="info" icon="fas fa-user">
+<x-adminlte-card id="card-info" title="Información del Alumno" theme="{{ $status === 'En riesgo' ? 'danger' : 'info' }}" icon="fas fa-user">
     <div class="row mb-2">
         <div class="col-md-4"><strong>Número de Control:</strong> {{ $alumno->Num_Control }}</div>
         <div class="col-md-4"><strong>Nombre:</strong> {{ $alumno->Nombre }}</div>
@@ -36,11 +41,13 @@ $status = $reprobadas >= 2 ? 'En riesgo' : 'Regular';
         <div class="col-md-4"><strong>Carrera:</strong> {{ $alumno->Carrera }}</div>
         <div class="col-md-4">
             <strong>Status:</strong>
-            @if($status === 'En riesgo')
-                <span class="badge bg-danger">En riesgo</span>
-            @else
-                <span class="badge bg-success">Regular</span>
-            @endif
+            <span id="estado-actual">
+                @if($status === 'En riesgo')
+                    <span class="badge bg-danger">En riesgo</span>
+                @else
+                    <span class="badge bg-success">Regular</span>
+                @endif
+            </span>
         </div>
     </div>
 </x-adminlte-card>
@@ -59,7 +66,8 @@ $status = $reprobadas >= 2 ? 'En riesgo' : 'Regular';
                 <li class="nav-item">
                     <a href="#" class="nav-link fw-semibold"
                        :class="{ 'active bg-info text-white': tab === '{{ $sem }}' }"
-                       @click.prevent="tab = '{{ $sem }}'">
+                       @click.prevent="tab = '{{ $sem }}'"
+                       data-semestre="{{ $sem }}">
                         Semestre {{ $sem }}
                     </a>
                 </li>
@@ -110,37 +118,27 @@ $status = $reprobadas >= 2 ? 'En riesgo' : 'Regular';
     </script>
 @endif
 
-{{-- jQuery y AJAX --}}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{{-- jQuery y lógica de estado dinámico --}}
 <script>
-    $('#semestre_filtrado').on('change', function () {
-        let semestre = $(this).val();
-        let url = "{{ route('alumnos.filtrarMaterias', $alumno->id) }}";
+    const estadoPorSemestre = @json($estadoPorSemestre);
 
-        // Muestra la barra de carga
-        $('#tabla-materias').html(`
-            <div class="my-3">
-                <div class="progress">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" 
-                         role="progressbar" style="width: 100%">
-                        Cargando materias...
-                    </div>
-                </div>
-            </div>
-        `);
+    document.querySelectorAll('.nav-link[data-semestre]').forEach(link => {
+        link.addEventListener('click', function () {
+            const semestreSeleccionado = this.getAttribute('data-semestre');
+            const estado = estadoPorSemestre[semestreSeleccionado];
 
-        $.ajax({
-            url: url,
-            method: 'GET',
-            data: { semestre: semestre },
-            success: function (response) {
-                $('#tabla-materias').html(response.html);
-            },
-            error: function () {
-                $('#tabla-materias').html('<p class="text-danger text-center">Error al cargar las materias.</p>');
+            // Actualiza badge
+            const estadoSpan = document.getElementById('estado-actual');
+            if (estado === 'En riesgo') {
+                estadoSpan.innerHTML = `<span class="badge bg-danger">En riesgo</span>`;
+                document.querySelector('#card-info').classList.remove('card-info');
+                document.querySelector('#card-info').classList.add('card-danger');
+            } else {
+                estadoSpan.innerHTML = `<span class="badge bg-success">Regular</span>`;
+                document.querySelector('#card-info').classList.remove('card-danger');
+                document.querySelector('#card-info').classList.add('card-info');
             }
         });
     });
 </script>
-
 @stop
